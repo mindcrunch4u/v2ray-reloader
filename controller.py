@@ -33,6 +33,7 @@ def start_v2ray_daemon(configuration_path, log_file_path=None):
             log_file_path)
     if default_config.verbose:
         print(command)
+    # if the controller.py script exists, then its children processes (v2ray) will also be killed
     os.system(command)
 
 
@@ -125,6 +126,7 @@ def main():
 
 
     refresh_and_restart_configs()
+    time.sleep(5) # allow v2ray to fully start
     while True:
         if is_proxy_valid():
             print("Proxy Check Passed.")
