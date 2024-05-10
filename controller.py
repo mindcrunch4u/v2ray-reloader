@@ -4,9 +4,12 @@ import sys
 import time
 import os
 import traceback
+from datetime import datetime
 from subprocess import Popen, PIPE, STDOUT
 from fetcher import build_curl_command, fetch_base64_config_list, convert_base64_list_to_json_list, load_template, load_indexed_config_to_memory
 from configuration import default_config
+
+controller_log_file = "./log_controller_file.txt"
 
 def find_v2ray_pids():
     pid_list = []
@@ -59,6 +62,9 @@ def refresh_configuration():
     curl_target = default_config.subscription_url
     curl_command = build_curl_command(curl_proxy, curl_target)
     base64_list = fetch_base64_config_list(curl_command)
+    if len(base64_list) == 1 and len(base64_list[0]) == 0:
+        print("Cannot fetch configurations from url.")
+        sys.exit(1)
 
     json_list = convert_base64_list_to_json_list(base64_list)
 
@@ -134,6 +140,9 @@ def main():
             continue
         else:
             print("Proxy Check Failed. Refreshing ...")
+            with open(controller_log_file, "a+") as log:
+                logstring = "Failed At: {}".format(datetime.now().strftime("%m/%d/%Y  %H:%M:%S"))
+                log.write(logstring + os.linesep)
             refresh_and_restart_configs()
             time.sleep(default_config.wait_time_impatient)
 
