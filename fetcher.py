@@ -62,7 +62,7 @@ def load_indexed_config_to_memory(template_dict, list_of_json, server_index, v2r
     config_in_memory["outbounds"][v2ray_at_index]['settings']['vnext'][0]['users'][0]['id'] = var_id
 
     if default_config.verbose:
-        print("Loaded: {} - {} - {}".format(var_address, var_port, var_id))
+        print("\tLoaded: {} - {} - {}".format(var_address, var_port, var_id))
 
     return config_in_memory
 
