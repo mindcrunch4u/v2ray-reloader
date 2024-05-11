@@ -11,6 +11,15 @@ from configuration import default_config
 
 controller_log_file = "./log_controller_file.txt"
 
+def ctr_log(logstring):
+    with open(controller_log_file, "a+") as log:
+        log.write("At: {}, {}{}".format(
+            datetime.now().strftime("%m/%d/%Y  %H:%M:%S"),
+            logstring,
+            os.linesep
+            ))
+
+
 def find_v2ray_pids():
     pid_list = []
     command = "ps -A | grep v2ray | awk -F ' ' '{print $1}'"
@@ -58,57 +67,65 @@ def is_proxy_valid():
 
 def refresh_configuration():
 
-    curl_proxy = default_config.subscription_fetch_proxy
-    curl_target = default_config.subscription_url
-    curl_command = build_curl_command(curl_proxy, curl_target)
-    base64_list = fetch_base64_config_list(curl_command)
-    if len(base64_list) == 1 and len(base64_list[0]) == 0:
-        print("Cannot fetch configurations from url.")
-        sys.exit(1)
+    is_need_to_refresh = True
 
-    json_list = convert_base64_list_to_json_list(base64_list)
+    while is_need_to_refresh:
 
-    if default_config.verbose:
-        for index, dict_item in enumerate(json_list):
-            print("Retrieved Configuration: {}".format(index))
-            for dict_key in dict_item:
-                print("\t{}: {}".format(dict_key, dict_item[dict_key]))
+        curl_proxy = default_config.subscription_fetch_proxy
+        curl_target = default_config.subscription_url
+        curl_command = build_curl_command(curl_proxy, curl_target)
+        base64_list = fetch_base64_config_list(curl_command)
+        if len(base64_list) == 1 and len(base64_list[0]) == 0:
+            print("Cannot fetch configurations from url.")
+            ctr_log("Cannot fetch configurations from url.")
+            time.sleep(5)
+            continue
 
-    template_dict = default_config.template_dict
-    for template_key in template_dict:
-        print("Handling {}".format(template_key))
-        v2ray_vnext_index = template_dict[template_key]["v2ray_vnext_index"]
-        output_file       = template_dict[template_key]["output_file"]
-        server_index      = template_dict[template_key]["server_index"]
-        res = ""
-        try:
-            if server_index == None:
-                # use the original configuration
-                # donot update it with the retrieved proxies
-                with open(template_key, "r") as f:
-                    res = f.read()
-            else:
-                template = load_template(template_key)
-                res = load_indexed_config_to_memory(template, json_list, 
-                                                    server_index, v2ray_vnext_index)
-                res = str(json.dumps(res, indent=2))
+        json_list = convert_base64_list_to_json_list(base64_list)
 
-            if output_file == None:
-                # edit in-place
-                with open(template_key, "w") as f:
-                    f.write(res)
-            else:
-                with open(output_file, "w") as f:
-                    f.write(res)
-            # in-place update default_config member
-            template_dict[template_key]["successful"] = True
-        except Exception:
-            print("\tError Occurred:")
-            print("\t\t{}:{}".format(template_key, template_dict[template_key]))
-            for line in traceback.format_exc().split(os.linesep):
-                print("\t\t{}".format(line.strip()))
-            # in-place update default_config member
-            template_dict[template_key]["successful"] = False
+        if default_config.verbose:
+            for index, dict_item in enumerate(json_list):
+                print("Retrieved Configuration: {}".format(index))
+                for dict_key in dict_item:
+                    print("\t{}: {}".format(dict_key, dict_item[dict_key]))
+
+        template_dict = default_config.template_dict
+        for template_key in template_dict:
+            print("Handling {}".format(template_key))
+            v2ray_vnext_index = template_dict[template_key]["v2ray_vnext_index"]
+            output_file       = template_dict[template_key]["output_file"]
+            server_index      = template_dict[template_key]["server_index"]
+            res = ""
+            try:
+                if server_index == None:
+                    # use the original configuration
+                    # donot update it with the retrieved proxies
+                    with open(template_key, "r") as f:
+                        res = f.read()
+                else:
+                    template = load_template(template_key)
+                    res = load_indexed_config_to_memory(template, json_list, 
+                                                        server_index, v2ray_vnext_index)
+                    res = str(json.dumps(res, indent=2))
+
+                if output_file == None:
+                    # edit in-place
+                    with open(template_key, "w") as f:
+                        f.write(res)
+                else:
+                    with open(output_file, "w") as f:
+                        f.write(res)
+                # in-place update default_config member
+                template_dict[template_key]["successful"] = True
+            except Exception:
+                print("\tError Occurred:")
+                print("\t\t{}:{}".format(template_key, template_dict[template_key]))
+                for line in traceback.format_exc().split(os.linesep):
+                    print("\t\t{}".format(line.strip()))
+                # in-place update default_config member
+                template_dict[template_key]["successful"] = False
+
+        is_need_to_refresh = False
 
 
 def main():
@@ -140,9 +157,7 @@ def main():
             continue
         else:
             print("Proxy Check Failed. Refreshing ...")
-            with open(controller_log_file, "a+") as log:
-                logstring = "Failed At: {}".format(datetime.now().strftime("%m/%d/%Y  %H:%M:%S"))
-                log.write(logstring + os.linesep)
+            ctr_log("Proxy Check Failed.")
             refresh_and_restart_configs()
             time.sleep(default_config.wait_time_impatient)
 
