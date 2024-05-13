@@ -16,6 +16,8 @@ All configuration options are controlled by the `default_config` object.
     - `v2ray_vnext_index` helps the controller to locate the position of the v2ray configuration in the configuration file. Since v2ray supports chaining, a `shadowsocks --> v2ray` configuration instructs v2ray to first encrypt the packets using `shadowsocks` and then `v2ray`, in this case, the `v2ray_vnext_index` is `1`; while a `v2ray --> shadowsocks` configuration, which tells v2ray to first encrypt the packets using `v2ray` and then `shadowsocks`, means the `v2ray_vnext_index` is `0`.
     - `server_index`: there are usually multiple servers in a single subscription URL, this selects which server to use. `None` means the configuration in the template will not be updated, if an out-of-range index is used, the controller will see an error and skip this template.
 
+For more details and how the controller works, visit [my website](https://icandothese.com/docs/tech/my_projects/#v2ray-reloader).
+
 ## Steps to Follow
 
 1. Configure the `template_dict` dictioanry in `configuration.py`, format:
