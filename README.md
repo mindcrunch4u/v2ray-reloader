@@ -1,4 +1,14 @@
 
+## Server Downtime Visualized
+
+```
+cp log_controller_file.txt visualize/
+cd visualize/
+python server_downtime.py
+```
+
+![server downtime](https://github.com/mindcrunch4u/v2ray-reloader/blob/main/visualize/demo.png)
+
 ## Configuration Options
 
 All configuration options are controlled by the `default_config` object.
