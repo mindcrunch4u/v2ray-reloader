@@ -33,6 +33,11 @@ default_config.subscription_fetch_proxy = "http://10.10.0.21:59001"
 default_config.connectivity_check_proxy = "http://127.0.0.1:59001"
 default_config.connectivity_check_url = "https://google.com"
 
+# wait_time_default:
+#   <= 0: no proxy check
+#   >  0: sleep for n seconds before proxycheck
+#   avoid setting the wait time too short (like 1 second),
+#   allow v2ray to start which takes a few seconds.
 default_config.wait_time_default = 60 # seconds
 default_config.wait_time_impatient = 20
 default_config.v2ray_binary_path = "./v2ray"
