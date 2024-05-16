@@ -23,7 +23,7 @@ def ctr_log(logstring):
 def find_v2ray_pids():
     pid_list = []
     kill_executable_keyword = os.path.basename(default_config.v2ray_binary_path)
-    command = "ps -A | grep {} | awk -F ' ' '{print $1}'".format(kill_executable_keyword)
+    command = "ps -A | grep {} | awk -F ' ' '{{print $1}}'".format(kill_executable_keyword)
     process = Popen(command , stdout=PIPE, stderr=STDOUT, shell=True)
     with process.stdout:
         for line in iter(process.stdout.readline, b''): # b'\n'-separated lines
@@ -153,7 +153,7 @@ def main():
     time.sleep(5) # allow v2ray to fully start
     while True:
         if default_config.wait_time_default <= 0:
-            sleep(1000)
+            time.sleep(1000)
             continue
 
         if is_proxy_valid():
